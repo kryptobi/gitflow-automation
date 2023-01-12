@@ -43,8 +43,10 @@ function merge_pr()
   -H "Authorization: token $GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/merge")
- echo "Merged PR Response:"
- echo "Code : $RESPONSE_CODE"
+if [[ "$RESPONSE_CODE" != "200" ]];
+ then
+  exit 1
+ fi
 }
 
 function approve_pr()
