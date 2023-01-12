@@ -43,7 +43,7 @@ function merge_pr()
   -H "Authorization: token $GITHUB_TOKEN" \
   -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/merge")
-  echo "try to merge"
+echo "try to merge"
 if [[ "$RESPONSE_CODE" != "200" ]];
  then
   exit 1
