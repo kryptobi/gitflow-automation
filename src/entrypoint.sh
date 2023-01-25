@@ -84,22 +84,22 @@ function check_bot_token_is_defined()
   fi
 }
 
-function check_is_pr_is_merged()
+function check_is_pr_merged()
 {
   echo "$(jq -r ".pull_request.merged" "$GITHUB_EVENT_PATH")"
   if [[ "$(jq -r ".pull_request.merged" "$GITHUB_EVENT_PATH")" == "false" ]];
   then
-    echo "This PR has not merged event."
+    echo "This PR has no merged event."
     exit 0
   fi
 }
 
-function check_is_pr_branch_has_prefix()
+function check_does_pr_branch_have_prefix()
 {
   echo "$(jq -r ".pull_request.head.ref" "$GITHUB_EVENT_PATH")"
   if [[ "$(jq -r ".pull_request.head.ref" "$GITHUB_EVENT_PATH")" != "$BRANCH_PREFIX"* ]];
   then
-    echo "This PR head branch do not have prefix."
+    echo "This PR head branch does not have prefix."
     exit 0
   fi
 }
@@ -119,8 +119,8 @@ function check_validate()
 {
   check_token_is_defined
   check_bot_token_is_defined
-  check_is_pr_is_merged
-  check_is_pr_branch_has_prefix
+  check_is_pr_merged
+  check_does_pr_branch_have_prefix
   check_is_merged_base_branch_is_trigger
 }
 
