@@ -17,15 +17,18 @@ function create_pr()
  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
   --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
   -X POST \
-  -H "Authorization: token $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls")
  echo "head: $SOURCE_BRANCH, base: $TARGET_BRANCH"
  echo "Create PR Response:"
  echo "Code : $RESPONSE_CODE"
- if [[ "$RESPONSE_CODE" != "201" ]];
- then
-  exit 1
+ if [[ "$RESPONSE_CODE" -ne "201" ]];
+ then  
+  echo "Could not create PR";
+  exit 1;
+ else  echo "Created PR";
  fi
 }
 
@@ -40,13 +43,15 @@ function merge_pr()
  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
   --data "{\"commit_title\":\"$COMMIT_TITLE\", \"commit_message\":\"$COMMIT_MESSAGE\", \"sha\": \"$HEAD_SHA\", \"merge_method\": \"$MERGE_METHOD\"}" \
   -X PUT \
-  -H "Authorization: token $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/merge")
- echo "try to merge"
- if [[ "$RESPONSE_CODE" != "200" ]];
- then
-  exit 1
+ if [[ "$RESPONSE_CODE" -ne "200" ]];
+ then  
+  echo "Could not merge PR";
+  exit 1;
+ else  echo "Merged PR";
  fi
 }
 
@@ -57,8 +62,9 @@ function approve_pr()
  RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}\n" \
   --data "{\"event\":\"APPROVE\"}" \
   -X POST \
-  -H "Authorization: token $BOT_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/reviews")
  echo "Approve PR Response:"
  echo "Code : $RESPONSE_CODE"
