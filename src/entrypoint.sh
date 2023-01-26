@@ -21,7 +21,7 @@ function create_pr()
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
   "https://api.github.com/repos/$REPO_FULLNAME/pulls")
- echo "head: $SOURCE_BRANCH, base: $TARGET_BRANCH"
+ echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
  echo "Create PR Response:"
  echo "Code : $RESPONSE_CODE"
  if [[ "$RESPONSE_CODE" -ne "201" ]];
