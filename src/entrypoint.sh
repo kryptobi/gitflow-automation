@@ -31,6 +31,7 @@ function create_pr()
 {
   TITLE="hotfix auto merged by $(jq -r ".pull_request.head.user.login" "$GITHUB_EVENT_PATH" | head -1)."
   REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
+  ASSIGNES=$(jq -r ".pull_request.assignees" "$GITHUB_EVENT_PATH")
   RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
     --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
     -X POST \
@@ -38,6 +39,8 @@ function create_pr()
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/$REPO_FULLNAME/pulls")
+  PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
+  LINK="https://github.com/$REPO_FULLNAME/pull/$PULL_NUMBER"
   echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
   echo "Create PR Response:"
   echo "Code : $RESPONSE_CODE"
@@ -45,7 +48,7 @@ function create_pr()
   then  
     echo "Could not create PR";
     title="Error:${RESPONSE_CODE}";
-    text="Error*${RESPONSE_CODE}*while*creating*PR";
+    text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK"};
     webhook $title $text;
     exit 1;
   else  echo "Created PR";
@@ -60,6 +63,7 @@ function merge_pr()
   HEAD_SHA="$(jq -r ".head.sha" "$OUTPUT_PATH" | head -1)"
   MERGE_METHOD="merge"
   PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
+  LINK="https://github.com/$REPO_FULLNAME/pull/$PULL_NUMBER"
   RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
     --data "{\"commit_title\":\"$COMMIT_TITLE\", \"commit_message\":\"$COMMIT_MESSAGE\", \"sha\": \"$HEAD_SHA\", \"merge_method\": \"$MERGE_METHOD\"}" \
     -X PUT \
@@ -71,7 +75,7 @@ function merge_pr()
   then  
     echo "Could not merge PR";
     title="Error:${RESPONSE_CODE}";
-    text="Error*${RESPONSE_CODE}*while*merging*PR";
+    text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK"};
     webhook $title $text;
     exit 1;
   else  echo "Merged PR";
