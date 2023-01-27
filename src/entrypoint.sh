@@ -70,6 +70,9 @@ function merge_pr()
   if [[ "$RESPONSE_CODE" -ne "200" ]];
   then  
     echo "Could not merge PR";
+    title="Error:${RESPONSE_CODE}";
+    text="Error*${RESPONSE_CODE}*while*merging*PR";
+    webhook $title $text;
     exit 1;
   else  echo "Merged PR";
   fi

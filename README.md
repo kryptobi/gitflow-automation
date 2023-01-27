@@ -18,11 +18,13 @@ jobs:
           TARGET_BRANCH: "develop"
           BASE_BRANCH: "main"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # 선택사항
+          MSTEAMS_WH: ${{ secrets.MSTEAMS_WH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }} # optional
 
 ```
 - `BRANCH_PREFIX`: hotfix prefix
 - `TARGET_BRANCH`: target branch
 - `BASE_BRANCH`: event that basebranch
-- `GITHUB_TOKEN`: your github token 
+- `GITHUB_TOKEN`: your github token
+- `MSTEAMS_WH`: your MS Teams webhook-URL
 - `BOT_TOKEN`: your repository bot token
