@@ -8,6 +8,9 @@ on:
 jobs:
   create-auto-pr:
     name: Gitflow Automation
+    permissions:
+      pull-requests: write
+      repository-projects: write
     runs-on: ubuntu-latest
     env:
     steps:
