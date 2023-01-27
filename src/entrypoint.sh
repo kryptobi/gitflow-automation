@@ -23,7 +23,7 @@ function webhook() {
 
     TEXT=$1
 
-    MESSAGE=$( echo ${TEXT} | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/:/ /g' )
+    MESSAGE=$( echo ${TEXT} | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/\/ /g' )
     JSON="{\"title\": \"${TITLE}\", \"themeColor\": \"${COLOR}\", \"text\": \"${MESSAGE}\" }"
 
     curl -H "Content-Type: application/json" -d "${JSON}" "${WEBHOOK_URL}"
@@ -49,7 +49,7 @@ function create_pr()
   if [[ "$RESPONSE_CODE" -ne "201" ]];
   then  
     echo "Could not create PR";
-    text="This:is:the:error:${RESPONSE_CODE}";
+    text="Error:${RESPONSE_CODE}";
     webhook $text;  
     exit 1;
   else  echo "Created PR";
