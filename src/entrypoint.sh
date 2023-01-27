@@ -2,9 +2,6 @@
 
 set -e
 
-echo "Event JSON:"
-cat $GITHUB_EVENT_PATH
-
 echo "Start Creating PR action"
 
 ##### CONSTANCE
