@@ -12,7 +12,6 @@ IS_NEED_APPROVE="false"
 ##### WEBHOOK
 function webhook() {
     WEBHOOK_URL="${MSTEAMS_WH}"
-    if [[ "${WEBHOOK_URL}" == "" ]]
 
     TITLE=$GITHUB_EVENT_PATH
 
