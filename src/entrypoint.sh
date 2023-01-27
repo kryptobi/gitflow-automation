@@ -9,65 +9,85 @@ OUTPUT_PATH=".output"
 ##### VARIABLE
 IS_NEED_APPROVE="false"
 
+##### WEBHOOK
+function webhook() {
+    WEBHOOK_URL="${MSTEAMS_WH}"
+    if [[ "${WEBHOOK_URL}" == "" ]]
+
+    TITLE=$GITHUB_EVENT_PATH
+
+    COLOR="d7000b"
+
+    TEXT=$1
+
+    MESSAGE=$( echo ${TEXT} | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/:/ /g' )
+    JSON="{\"title\": \"${TITLE}\", \"themeColor\": \"${COLOR}\", \"text\": \"${MESSAGE}\" }"
+
+    curl -H "Content-Type: application/json" -d "${JSON}" "${WEBHOOK_URL}"
+}
+
 ##### FUNCTION
 function create_pr()
 {
- TITLE="hotfix auto merged by $(jq -r ".pull_request.head.user.login" "$GITHUB_EVENT_PATH" | head -1)."
- REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
- RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
-  --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
-  -X POST \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$REPO_FULLNAME/pulls")
- echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
- echo "Create PR Response:"
- echo "Code : $RESPONSE_CODE"
- if [[ "$RESPONSE_CODE" -ne "201" ]];
- then  
-  echo "Could not create PR";
-  exit 1;
- else  echo "Created PR";
- fi
+  TITLE="hotfix auto merged by $(jq -r ".pull_request.head.user.login" "$GITHUB_EVENT_PATH" | head -1)."
+  #REPO_OWNER=$(jq -r ".repository.owner" "$GITHUB_EVENT_PATH")
+  REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
+  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
+    --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
+    -X POST \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/JonahArends/$REPO_FULLNAME/pulls")
+  echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
+  echo "Create PR Response:"
+  echo "Code : $RESPONSE_CODE"
+  if [[ "$RESPONSE_CODE" -ne "201" ]];
+  then  
+    echo "Could not create PR";
+    text="This:is:an:error";
+    webhook $text;
+    exit 1;
+  else  echo "Created PR";
+  fi
 }
 
 function merge_pr()
 {
- REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
- COMMIT_TITLE="$(jq -r ".title" "$OUTPUT_PATH" | head -1)"
- COMMIT_MESSAGE="$(jq -r ".body.head_commit.message" "$OUTPUT_PATH" | head -1)"
- HEAD_SHA="$(jq -r ".head.sha" "$OUTPUT_PATH" | head -1)"
- MERGE_METHOD="merge"
- PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
- RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
-  --data "{\"commit_title\":\"$COMMIT_TITLE\", \"commit_message\":\"$COMMIT_MESSAGE\", \"sha\": \"$HEAD_SHA\", \"merge_method\": \"$MERGE_METHOD\"}" \
-  -X PUT \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/merge")
- if [[ "$RESPONSE_CODE" -ne "200" ]];
- then  
-  echo "Could not merge PR";
-  exit 1;
- else  echo "Merged PR";
- fi
+  REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
+  COMMIT_TITLE="$(jq -r ".title" "$OUTPUT_PATH" | head -1)"
+  COMMIT_MESSAGE="$(jq -r ".body.head_commit.message" "$OUTPUT_PATH" | head -1)"
+  HEAD_SHA="$(jq -r ".head.sha" "$OUTPUT_PATH" | head -1)"
+  MERGE_METHOD="merge"
+  PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
+  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
+    --data "{\"commit_title\":\"$COMMIT_TITLE\", \"commit_message\":\"$COMMIT_MESSAGE\", \"sha\": \"$HEAD_SHA\", \"merge_method\": \"$MERGE_METHOD\"}" \
+    -X PUT \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/merge")
+  if [[ "$RESPONSE_CODE" -ne "200" ]];
+  then  
+    echo "Could not merge PR";
+    exit 1;
+  else  echo "Merged PR";
+  fi
 }
 
 function approve_pr()
 {
- REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
- PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
- RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}\n" \
-  --data "{\"event\":\"APPROVE\"}" \
-  -X POST \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/reviews")
- echo "Approve PR Response:"
- echo "Code : $RESPONSE_CODE"
+  REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
+  PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
+  RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}\n" \
+    --data "{\"event\":\"APPROVE\"}" \
+    -X POST \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/$REPO_FULLNAME/pulls/$PULL_NUMBER/reviews")
+  echo "Approve PR Response:"
+  echo "Code : $RESPONSE_CODE"
 }
 
 function check_token_is_defined()
