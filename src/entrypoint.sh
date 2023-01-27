@@ -17,11 +17,11 @@ IS_NEED_APPROVE="false"
 function webhook() {
     WEBHOOK_URL="${MSTEAMS_WH}"
 
-    TITLE=$GITHUB_EVENT_PATH
+    TITLE=$1
 
     COLOR="d7000b"
 
-    TEXT=$1
+    TEXT=$2
 
     MESSAGE=$( echo ${TEXT} | sed 's/"/\"/g' | sed "s/'/\'/g" | sed 's/*/ /g' )
     JSON="{\"title\": \"${TITLE}\", \"themeColor\": \"${COLOR}\", \"text\": \"${MESSAGE}\" }"
@@ -33,7 +33,6 @@ function webhook() {
 function create_pr()
 {
   TITLE="hotfix auto merged by $(jq -r ".pull_request.head.user.login" "$GITHUB_EVENT_PATH" | head -1)."
-  REPO_OWNER=$(jq -r ".repository.owner.login" "$GITHUB_EVENT_PATH")
   REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
   RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
     --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
@@ -41,15 +40,16 @@ function create_pr()
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/$REPO_OWNER/$REPO_FULLNAME/pulls")
+    "https://api.github.com/repos/$REPO_FULLNAME/pulls")
   echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
   echo "Create PR Response:"
   echo "Code : $RESPONSE_CODE"
   if [[ "$RESPONSE_CODE" -ne "201" ]];
   then  
     echo "Could not create PR";
-    text="Error:${RESPONSE_CODE}";
-    webhook $text;  
+    title="Error:${RESPONSE_CODE}";
+    text="Error*${RESPONSE_CODE}*while*creating*PR";
+    webhook $title $text;
     exit 1;
   else  echo "Created PR";
   fi
