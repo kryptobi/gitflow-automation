@@ -36,7 +36,7 @@ function create_pr()
   echo "."
   ASSIGNES=$(jq -r ".pull_request.assignees" "$GITHUB_EVENT_PATH")
   echo "."
-  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
+  RESPONSE_CODE=$(curl -v -o $OUTPUT_PATH -s -w "%{http_code}\n" \
     --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
     -X POST \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -54,7 +54,7 @@ function create_pr()
   then  
     echo "Could not create PR";
     title="Error:${RESPONSE_CODE}";
-    text="Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK";
+    text="Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:*$ASSIGNES\nBranch:*";
     #text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK"};
     webhook $title $text;
     exit 1;
