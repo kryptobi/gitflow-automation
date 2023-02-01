@@ -15,7 +15,7 @@ jobs:
     env:
     steps:
       - name: gitflow-automation
-        uses: JonahArends/gitflow-automation@v0.1.7
+        uses: JonahArends/gitflow-automation@v0.1.9
         env:
           BRANCH_PREFIX: "hotfix"
           TARGET_BRANCH: "develop"
