@@ -15,7 +15,7 @@ jobs:
     env:
     steps:
       - name: gitflow-automation
-        uses: peoplefund-tech/gitflow-automation@v0.1.1
+        uses: JonahArends/gitflow-automation@v0.1.7
         env:
           BRANCH_PREFIX: "hotfix"
           TARGET_BRANCH: "develop"
@@ -29,5 +29,5 @@ jobs:
 - `TARGET_BRANCH`: target branch
 - `BASE_BRANCH`: event that basebranch
 - `GITHUB_TOKEN`: your github token
-- `MSTEAMS_WH`: your MS Teams webhook-URL
+- `MSTEAMS_WH`: your MS Teams webhook-URL (Secret recommended)
 - `BOT_TOKEN`: your repository bot token
