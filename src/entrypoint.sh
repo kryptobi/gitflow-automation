@@ -10,6 +10,9 @@ OUTPUT_PATH=".output"
 ##### VARIABLE
 IS_NEED_APPROVE="false"
 
+##### LOGIN
+#gh auth 
+
 ##### WEBHOOK
 function webhook() {
     WEBHOOK_URL="${MSTEAMS_WH}"
@@ -29,29 +32,17 @@ function webhook() {
 ##### FUNCTION
 function create_pr()
 {
-  TITLE="hotfix auto merged by $(jq -r ".pull_request.head.user.login" "$GITHUB_EVENT_PATH" | head -1)."
-  REPO_FULLNAME=$(jq -r ".repository.full_name" "$GITHUB_EVENT_PATH")
-  ASSIGNES=$(jq -r ".pull_request.assignees" "$GITHUB_EVENT_PATH")
-  RESPONSE_CODE=$(curl -o $OUTPUT_PATH -s -w "%{http_code}\n" \
-    --data "{\"title\":\"$TITLE\", \"head\": \"$BASE_BRANCH\", \"base\": \"$TARGET_BRANCH\"}" \
-    -X POST \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/$REPO_FULLNAME/pulls")
-  echo "."
-  PULL_NUMBER="$(jq -r ".number" "$OUTPUT_PATH" | head -1)"
-  echo "."
-  LINK="https://github.com/$REPO_FULLNAME/pull/$PULL_NUMBER"
+  TITLE="hotfix auto merged by $USER"
+  RESPONSE_CODE=$(gh pr create -t $TITLE -b "Automated PR by gitflow-automation" -a $USER -R $REPO_FULLNAME -B $TARGET_BRANCH )
   echo "head: $BASE_BRANCH, base: $TARGET_BRANCH"
   echo "Create PR Response:"
-  echo "Code : $RESPONSE_CODE"
+  echo "Code :   $RESPONSE_CODE"
   if [[ "$RESPONSE_CODE" -ne "201" ]];
   then  
     echo "Could not create PR";
-    title="Error:${RESPONSE_CODE}";
-    text="Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:*$ASSIGNES\nBranch:*";
-    #text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK"};
+    title="Error:$RESPONSE_CODE";
+    text="Error*$RESPONSE_CODE*while*creating*PR\n$TARGET_PR\nUSER:*$USER\nBranch:*$HEAD_BRANCH\nMain PR:*$MAIN_PR";
+    #text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nUSER:$USER\nBranch:$LINK"};
     webhook $title $text;
     exit 1;
   else  echo "Created PR";
@@ -78,8 +69,8 @@ function merge_pr()
   then  
     echo "Could not merge PR";
     title="Error:${RESPONSE_CODE}";
-    text="Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK";
-    #text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nAssignes:$ASSIGNES\nBranch:$LINK"};
+    text="Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nUSER:$USER\nBranch:$LINK";
+    #text=${echo -e "Error*$RESPONSE_CODE*while*creating*PR\n$LINK\nUSER:$USER\nBranch:$LINK"};
     webhook $title $text;
     exit 1;
   else  echo "Merged PR";
